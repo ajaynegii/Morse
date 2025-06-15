@@ -6,6 +6,7 @@ import { Send, Smile } from "lucide-react"
 import { useState, type KeyboardEvent } from "react"
 import { FileUpload } from "./file-upload"
 import { Attachment } from "@/lib/types"
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface MessageInputProps {
   onSendMessage: (content: string, attachment?: Attachment) => void
@@ -16,6 +17,7 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
   const [message, setMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [selectedFile, setSelectedFile] = useState<Attachment | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const handleSend = () => {
     if (message.trim() || selectedFile) {
@@ -25,6 +27,7 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
         setMessage("")
         setSelectedFile(null)
         setIsSending(false)
+        setShowEmojiPicker(false)
       }, 300)
     }
   }
@@ -42,6 +45,10 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
 
   const handleRemoveFile = () => {
     setSelectedFile(null)
+  }
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setMessage((prevMessage) => prevMessage + emojiData.emoji)
   }
 
   return (
@@ -64,9 +71,22 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
             rows={1}
             disabled={disabled || isSending}
           />
-          <Button variant="ghost" size="icon" className="absolute right-2 bottom-2 rounded-full" title="Add emoji">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 bottom-2 rounded-full"
+            title="Add emoji"
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            disabled={disabled || isSending}
+          >
             <Smile className="h-5 w-5" />
           </Button>
+
+          {showEmojiPicker && (
+            <div className="absolute bottom-full right-0 mb-2 z-50">
+              <EmojiPicker onEmojiClick={handleEmojiClick} theme="dark" width={300} height={400} />
+            </div>
+          )}
         </div>
 
         <Button

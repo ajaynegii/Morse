@@ -42,12 +42,12 @@ function generateKey() {
 }
 
 function xorEncrypt(text, keySeed) {
-  let result = "";
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i) ^ (Math.floor(PI * E * PHI * keySeed * (i + 1)) % 256);
-    result += String.fromCharCode(code);
+  const textBuffer = Buffer.from(text, 'utf8');
+  let resultBuffer = Buffer.alloc(textBuffer.length);
+  for (let i = 0; i < textBuffer.length; i++) {
+    resultBuffer[i] = textBuffer[i] ^ (Math.floor(PI * E * PHI * keySeed * (i + 1)) % 256);
   }
-  return result;
+  return resultBuffer.toString('binary');
 }
 
 function encryptMessage(text) {
@@ -59,13 +59,13 @@ function encryptMessage(text) {
   return { encrypted: xorEncrypt(substituted, keySeed), keySeed };
 }
 
-function xorDecrypt(text, keySeed) {
-  let result = "";
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i) ^ (Math.floor(PI * E * PHI * keySeed * (i + 1)) % 256);
-    result += String.fromCharCode(code);
+function xorDecrypt(binaryString, keySeed) {
+  const textBuffer = Buffer.from(binaryString, 'binary');
+  let resultBuffer = Buffer.alloc(textBuffer.length);
+  for (let i = 0; i < textBuffer.length; i++) {
+    resultBuffer[i] = textBuffer[i] ^ (Math.floor(PI * E * PHI * keySeed * (i + 1)) % 256);
   }
-  return result;
+  return resultBuffer.toString('utf8');
 }
 
 function decryptMessage(encrypted, keySeed) {

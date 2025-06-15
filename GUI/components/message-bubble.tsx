@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import type { Message } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { Check, CheckCheck, File, Image, Download } from "lucide-react"
+import { Check, CheckCheck, File, Image, Download, FileText } from "lucide-react"
 
 interface MessageBubbleProps {
   message: Message
@@ -20,6 +20,8 @@ export function MessageBubble({ message, isMe, contactName, contactAvatar }: Mes
   const getFileIcon = (mimetype: string) => {
     if (mimetype.startsWith('image/')) {
       return <Image className="h-4 w-4" />
+    } else if (mimetype === 'application/pdf') {
+      return <FileText className="h-4 w-4" />
     }
     return <File className="h-4 w-4" />
   }
