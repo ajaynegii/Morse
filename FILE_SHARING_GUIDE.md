@@ -158,12 +158,12 @@ const allowedTypes = [
 ## Testing the Implementation 🧪
 
 ### 1. **Backend Test**
-Use the provided `test_file_upload.html` file to test the upload endpoint:
+Manually test the upload endpoint using a tool like `curl` or Postman:
 ```bash
-# Open test_file_upload.html in a browser
-# Try uploading different file types
-# Verify download links work
+# Example using curl (replace 'path/to/your/test.jpg' with a real file)
+curl -X POST -F "file=@path/to/your/test.jpg" http://localhost:5000/api/upload
 ```
+Verify that the file is uploaded to `backend/uploads/` and you receive a successful JSON response.
 
 ### 2. **Frontend Test**
 1. Start both backend and frontend servers

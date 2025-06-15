@@ -1,211 +1,134 @@
-# End-to-End Messaging System with MongoDB
+# End-to-End Encrypted Chat Application
 
-A secure, encrypted messaging system with MongoDB database integration for message storage and management.
+A secure, real-time chat application built with Node.js, Express, Socket.IO, Next.js, and MongoDB, featuring end-to-end encryption, contact management, and WhatsApp-like file sharing capabilities.
 
 ## Features
 
-- 🔐 **End-to-End Encryption**: Custom encryption algorithm with Huffman compression
-- 💾 **MongoDB Integration**: Persistent message storage with full CRUD operations
-- 📊 **Message Statistics**: Real-time statistics and analytics
-- 📱 **GUI Interface**: User-friendly Tkinter-based interface
-- 🔍 **Message History**: View and search through message history
-- 🛠️ **Database Manager**: Comprehensive database management tool
+- 🔐 **Secure Authentication**: User signup and signin with JWT for secure session management.
+- 👥 **Contact Management**: Search for users by mobile number and add them to your contact list.
+- 💬 **Real-time Messaging**: Instant message delivery using Socket.IO.
+- 🔒 **End-to-End Encryption**: Messages are encrypted using a custom algorithm combined with Huffman compression before transmission and storage.
+- 🖼️ **File & Photo Sharing**: Send and receive various file types (images, documents, archives) with previews and download options, similar to WhatsApp.
+- 📊 **Message History**: Persistent storage of messages in MongoDB.
+- 🌙 **Theming**: Light and dark mode support for the user interface.
 
-## Prerequisites
+## Technologies Used
 
-### 1. Install MongoDB
+### Backend
+- **Node.js**: JavaScript runtime environment.
+- **Express**: Web application framework for Node.js.
+- **Socket.IO**: Real-time bidirectional event-based communication.
+- **MongoDB & Mongoose**: NoSQL database and its ODM for data persistence.
+- **JWT (JSON Web Tokens)**: For user authentication.
+- **Bcrypt.js**: For password hashing.
+- **Multer**: For handling file uploads.
 
-#### Windows:
-1. Download MongoDB Community Server from [mongodb.com](https://www.mongodb.com/try/download/community)
-2. Install MongoDB with default settings
-3. Start MongoDB service:
-   ```cmd
-   net start MongoDB
-   ```
-
-#### macOS (using Homebrew):
-```bash
-brew tap mongodb/brew
-brew install mongodb-community
-brew services start mongodb/brew/mongodb-community
-```
-
-#### Linux (Ubuntu/Debian):
-```bash
-sudo apt update
-sudo apt install mongodb
-sudo systemctl start mongodb
-sudo systemctl enable mongodb
-```
-
-### 2. Install Python Dependencies
-
-```bash
-pip install -r requirements.txt
-```
+### Frontend
+- **Next.js**: React framework for building server-rendered and static web applications.
+- **React**: JavaScript library for building user interfaces.
+- **TypeScript**: Typed superset of JavaScript that compiles to plain JavaScript.
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development.
+- **Shadcn/ui**: Reusable UI components.
+- **Socket.IO Client**: For real-time communication with the backend.
 
 ## Project Structure
 
 ```
-├── core.py              # Encryption and compression algorithms
-├── database.py          # MongoDB connection and operations
-├── node1.py            # Server application
-├── node2.py            # Client application
-├── db_manager.py       # Database management tool
-├── requirements.txt    # Python dependencies
-└── README.md          # This file
+.github/                 # GitHub workflows (e.g., CI/CD - to be added)
+backend/                 # Node.js Express server
+├── controllers/         # (Future: Business logic) 
+├── middleware/          # Authentication middleware
+├── models/              # Mongoose schemas (User, Message)
+├── routes/              # API endpoints (auth, contacts)
+├── uploads/             # Directory for uploaded files
+├── crypto.js            # Custom encryption logic
+├── huffman.js           # Huffman compression logic
+└── server.js            # Main backend application file
+GUI/                     # Next.js React frontend
+├── app/                 # Next.js App Router structure
+├── components/          # Reusable React components (MessageInput, MessageBubble, FileUpload, etc.)
+├── context/             # React context for authentication
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions and type definitions (e.g., types.ts)
+├── public/              # Static assets
+├── styles/              # Global styles
+└── next.config.mjs      # Next.js configuration
+.gitignore               # Specifies intentionally untracked files to ignore
+DEPLOYMENT_GUIDE.md      # Instructions for deploying the application
+FILE_SHARING_GUIDE.md    # Detailed guide on the file sharing feature
+README.md                # This file
 ```
+
+## Setup and Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/ajaynegii/Morse.git
+cd Morse
+```
+
+### 2. Backend Setup
+
+Navigate to the `backend` directory, install dependencies, and start the server.
+
+```bash
+cd backend
+npm install
+# Install nodemon for development (optional, but recommended)
+npm install -g nodemon
+
+# Run in development mode
+npm run dev
+
+# Or run in production mode
+npm start
+```
+
+**Environment Variables (Backend):**
+Create a `.env` file in the `backend/` directory with the following:
+```
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+```
+Replace `your_mongodb_connection_string` with your MongoDB Atlas URI or local MongoDB connection string. Replace `your_jwt_secret_key` with a strong, random string.
+
+### 3. Frontend Setup
+
+Open a **new terminal**, navigate to the `GUI` directory, install dependencies, and start the development server.
+
+```bash
+cd GUI
+npm install
+npm run dev
+```
+
+The frontend application will typically run on `http://localhost:3000`.
+
+### 4. MongoDB Setup
+
+Ensure you have a MongoDB instance running (either locally or a cloud-hosted solution like MongoDB Atlas). Update the `MONGODB_URI` in your `backend/.env` file accordingly.
 
 ## Usage
 
-### 1. Start MongoDB
-Ensure MongoDB is running on your system (default port: 27017)
+1.  Ensure both the backend (`npm start` or `npm run dev` in `backend/`) and frontend (`npm run dev` in `GUI/`) servers are running.
+2.  Open your browser and navigate to `http://localhost:3000`.
+3.  **Sign Up** for a new account or **Sign In** if you already have one.
+4.  Once logged in, you can search for and add contacts by their mobile number.
+5.  Select a contact from your list to start chatting in real-time.
+6.  Use the text input to send messages or click the paperclip icon to send files/photos.
 
-### 2. Run the Server
-```bash
-python node1.py
-```
-- Server will start listening on port 9999
-- Database connection status will be displayed
-- Use "View Message History" to see stored messages
-- Use "Show Statistics" to view message analytics
+## File Sharing
 
-### 3. Run the Client
-```bash
-python node2.py
-```
-- Client will connect to the server automatically
-- Start sending messages - they will be stored in MongoDB
-- View message history and statistics
+Refer to the `FILE_SHARING_GUIDE.md` for detailed instructions and information on the file sharing feature.
 
-### 4. Database Manager (Optional)
-```bash
-python db_manager.py
-```
-- Comprehensive database management interface
-- View, search, and manage all messages
-- Export/import functionality
-- Test message creation
+## Deployment
 
-## Database Schema
+Refer to the `DEPLOYMENT_GUIDE.md` for instructions on how to deploy this application.
 
-### Messages Collection
-```json
-{
-  "_id": "ObjectId",
-  "sender": "string",
-  "receiver": "string", 
-  "original_message": "string",
-  "encrypted_message": "string",
-  "key_seed": "number",
-  "compressed_data": "string",
-  "huffman_tree": "binary",
-  "timestamp": "datetime",
-  "is_read": "boolean"
-}
-```
+## Contributing
 
-## Features Explained
-
-### Encryption System
-- **Huffman Compression**: Reduces message size
-- **Custom Encryption**: Time-based key generation with mathematical constants
-- **Secure Transmission**: Messages are encrypted before storage
-
-### Database Operations
-- **Store Messages**: Automatically stores all sent/received messages
-- **Retrieve Messages**: Get messages by sender/receiver
-- **Message Statistics**: Total, unread, and recent message counts
-- **Read Status**: Track which messages have been read
-
-### GUI Features
-- **Real-time Status**: Database connection status
-- **Message History**: View all stored messages
-- **Statistics**: Message analytics and metrics
-- **Error Handling**: Graceful handling of connection issues
-
-## Configuration
-
-### MongoDB Connection
-Default connection string: `mongodb://localhost:27017/`
-
-To change the connection string, modify the `MessageDatabase` class in `database.py`:
-```python
-db = MessageDatabase("mongodb://your-server:27017/")
-```
-
-### Database Name
-Default database: `messaging_system`
-
-To change the database name, modify in `database.py`:
-```python
-self.db = self.client['your_database_name']
-```
-
-## Troubleshooting
-
-### MongoDB Connection Issues
-1. **Check if MongoDB is running**:
-   ```bash
-   # Windows
-   net start MongoDB
-   
-   # Linux/macOS
-   sudo systemctl status mongodb
-   ```
-
-2. **Check MongoDB port**:
-   ```bash
-   netstat -an | grep 27017
-   ```
-
-3. **Test connection**:
-   ```bash
-   mongo --eval "db.runCommand('ping')"
-   ```
-
-### Python Dependencies
-If you encounter import errors:
-```bash
-pip install --upgrade pymongo
-pip install --upgrade tkinter
-```
-
-### Permission Issues
-- Ensure MongoDB has write permissions to the data directory
-- Run the application with appropriate permissions
-
-## Security Considerations
-
-1. **Encryption**: Messages are encrypted before storage
-2. **Local Database**: MongoDB runs locally by default
-3. **No External Dependencies**: All encryption is custom-built
-4. **Secure Key Generation**: Time-based keys with mathematical constants
-
-## Performance
-
-- **Indexing**: Database indexes on timestamp, sender, and receiver
-- **Compression**: Huffman compression reduces storage size
-- **Efficient Queries**: Optimized MongoDB queries for fast retrieval
-
-## Future Enhancements
-
-- [ ] User authentication system
-- [ ] Message encryption at rest
-- [ ] Real-time notifications
-- [ ] File sharing capabilities
-- [ ] Group messaging
-- [ ] Message backup/restore
-- [ ] Advanced search filters
-- [ ] Message threading
-
-## Support
-
-For issues or questions:
-1. Check the troubleshooting section
-2. Verify MongoDB is running
-3. Check Python dependencies
-4. Review error messages in the GUI
+Contributions are welcome! Please feel free to open issues or submit pull requests.
 
 ## License
 
