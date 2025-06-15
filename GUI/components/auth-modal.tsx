@@ -45,7 +45,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
       const data = await response.json();
 
       if (response.ok) {
-        onAuthSuccess(data.token, data.mobileNumber, data._id);
+        onAuthSuccess(data.token, data.mobileNumber, data.userId);
         toast({
           title: "Success",
           description: isLogin ? "Logged in successfully!" : "Account created successfully!",
@@ -59,11 +59,11 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Auth error:", error);
       toast({
         title: "Network Error",
-        description: "Could not connect to the server. Is the backend running?",
+        description: error.message || "Could not connect to the server. Is the backend running?",
         variant: "destructive",
       });
     } finally {

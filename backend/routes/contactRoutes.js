@@ -31,15 +31,15 @@ router.get('/search', protect, async (req, res) => {
 // @desc    Add a user to the current user's contact list
 // @access  Private
 router.post('/add', protect, async (req, res) => {
-  const { contactId } = req.body;
+  const { mobileNumber } = req.body;
 
-  if (!contactId) {
-    return res.status(400).json({ message: 'Please provide a contact ID to add' });
+  if (!mobileNumber) {
+    return res.status(400).json({ message: 'Please provide a mobile number to add' });
   }
 
   try {
     const user = req.user; // Authenticated user
-    const contactToAdd = await User.findById(contactId);
+    const contactToAdd = await User.findOne({ mobileNumber });
 
     if (!contactToAdd) {
       return res.status(404).json({ message: 'Contact not found' });
@@ -47,7 +47,7 @@ router.post('/add', protect, async (req, res) => {
     if (user._id.toString() === contactToAdd._id.toString()) {
       return res.status(400).json({ message: 'Cannot add yourself as a contact' });
     }
-    if (user.contacts.includes(contactId)) {
+    if (user.contacts.some(contact => contact.toString() === contactToAdd._id.toString())) {
       return res.status(400).json({ message: 'Contact already in your list' });
     }
 

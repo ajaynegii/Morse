@@ -15,7 +15,7 @@ const User = require('./models/User');
 const jwt = require('jsonwebtoken');
 
 // === CONFIGURATION ===
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://messaging_user:Ra27Hjh5mTl6ujWA@cluster0.z0ofrfz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://messaging_user:3DBZNGn62h9xGQVR@cluster0.z0ofrfz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const PORT = 5000;
 

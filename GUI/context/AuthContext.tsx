@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface AuthContextType {
@@ -19,18 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [mobileNumber, setMobileNumber] = useState<string | null>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUserId = localStorage.getItem("userId");
-    const storedMobileNumber = localStorage.getItem("mobileNumber");
-
-    if (storedToken && storedUserId && storedMobileNumber) {
-      setToken(storedToken);
-      setUserId(storedUserId);
-      setMobileNumber(storedMobileNumber);
-    }
-  }, []);
 
   const login = (newToken: string, newMobileNumber: string, newUserId: string) => {
     setToken(newToken);

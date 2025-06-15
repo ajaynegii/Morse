@@ -20,7 +20,7 @@ router.post('/register', async (req, res) => {
   try {
     let user = await User.findOne({ mobileNumber });
     if (user) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'User already exists, please sign in' });
     }
 
     user = new User({
