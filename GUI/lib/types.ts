@@ -1,0 +1,35 @@
+export interface Contact {
+  id: string
+  name: string
+  mobileNumber: string
+  lastMessage?: string
+  lastMessageTime?: Date
+  unreadCount?: number
+  avatar?: string
+}
+
+export interface Attachment {
+  filename: string
+  originalname: string
+  mimetype: string
+  size: number
+  path: string
+}
+
+export interface Message {
+  id: string
+  senderId: string
+  senderMobileNumber: string
+  receiverId: string
+  receiverMobileNumber: string
+  content: string
+  timestamp: Date
+  status: "sent" | "delivered" | "read"
+  hasAttachment?: boolean
+  attachment?: Attachment
+}
+
+export interface SearchUser {
+  _id: string
+  mobileNumber: string
+}

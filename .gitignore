@@ -1,0 +1,29 @@
+# General exclusions
+.DS_Store
+.env
+.env.local
+
+# Node.js dependencies
+/node_modules
+package-lock.json
+yarn.lock
+
+# Python specific
+__pycache__/
+*.pyc
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# Test files that should not be committed
+test_file_upload.html
+test_atlas_connection.py
+check_mongodb.py
+database.py
+test_mongodb.py
+db_manager.py
+node1.py
+node2.py
+core.py 

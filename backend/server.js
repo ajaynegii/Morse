@@ -1,0 +1,290 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+require('dotenv').config();
+const { huffmanCompress, huffmanDecompress, serializeTree, deserializeTree } = require('./huffman');
+const { encryptMessage, decryptMessage } = require('./crypto');
+const authRoutes = require('./routes/auth');
+const contactRoutes = require('./routes/contactRoutes');
+const User = require('./models/User');
+const jwt = require('jsonwebtoken');
+
+// === CONFIGURATION ===
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://messaging_user:Ra27Hjh5mTl6ujWA@cluster0.z0ofrfz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const PORT = 5000;
+
+// === MULTER CONFIGURATION FOR FILE UPLOADS ===
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  // Allow images, documents, and common file types
+  const allowedTypes = [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain', 'application/zip', 'application/x-zip-compressed'
+  ];
+  
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only images, documents, and common file types are allowed.'), false);
+  }
+};
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
+
+// === EXPRESS/HTTP/SOCKET.IO SETUP ===
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*', // Allow all origins for dev; restrict in prod
+    methods: ['GET', 'POST']
+  }
+});
+app.use(cors());
+app.use(express.json());
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// === FILE UPLOAD ROUTES ===
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const fileInfo = {
+      filename: req.file.filename,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      path: `/uploads/${req.file.filename}`
+    };
+
+    res.json({
+      message: 'File uploaded successfully',
+      file: fileInfo
+    });
+  } catch (error) {
+    console.error('File upload error:', error);
+    res.status(500).json({ message: 'Error uploading file' });
+  }
+});
+
+// === ROUTES ===
+app.use('/api/auth', authRoutes);
+app.use('/api/contacts', contactRoutes);
+
+// === MONGODB SETUP ===
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
+
+const messageSchema = new mongoose.Schema({
+  senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  senderMobileNumber: String,
+  receiverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  receiverMobileNumber: String,
+  original_message: String,
+  encrypted_message: String,
+  key_seed: Number,
+  compressed_data: String,
+  huffman_tree: Object,
+  timestamp: { type: Date, default: Date.now },
+  is_read: { type: Boolean, default: false },
+  // New fields for file attachments
+  hasAttachment: { type: Boolean, default: false },
+  attachment: {
+    filename: String,
+    originalname: String,
+    mimetype: String,
+    size: Number,
+    path: String
+  }
+});
+const Message = mongoose.model('Message', messageSchema);
+
+// === SOCKET.IO AUTHENTICATION & EVENTS ===
+io.on('connection', async (socket) => {
+  console.log(`🔗 Client connected: ${socket.id}`);
+  socket.isAuth = false;
+
+  socket.on('authenticate', async ({ token }) => {
+    try {
+      if (!token) throw new Error('No token provided');
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const user = await User.findById(decoded.id).select('-password');
+
+      if (!user) throw new Error('User not found');
+
+      socket.user = user;
+      socket.isAuth = true;
+      console.log(`✅ Socket ${socket.id} authenticated for user: ${user.mobileNumber}`);
+      socket.emit('authenticated', { userId: user._id, mobileNumber: user.mobileNumber });
+
+      const contactIds = user.contacts.map(contact => contact._id);
+      const relevantUserIds = [user._id, ...contactIds];
+
+      const messages = await Message.find({
+        $or: [
+          { senderId: { $in: relevantUserIds }, receiverId: { $in: relevantUserIds } },
+          { senderId: user._id },
+          { receiverId: user._id }
+        ]
+      }).sort({ timestamp: 1 }).limit(100);
+
+      const history = messages.map(msg => {
+        let decryptedContent = '';
+        if (msg.original_message) {
+          const tree = deserializeTree(msg.huffman_tree);
+          try {
+            decryptedContent = decryptMessage(huffmanDecompress(msg.compressed_data, tree), msg.key_seed);
+          } catch (e) {
+            console.warn('Could not decrypt message:', msg._id, e.message);
+            decryptedContent = '⚠️ [Decryption Error]';
+          }
+        }
+
+        return {
+          id: msg._id,
+          senderId: msg.senderId,
+          senderMobileNumber: msg.senderMobileNumber,
+          receiverId: msg.receiverId,
+          receiverMobileNumber: msg.receiverMobileNumber,
+          message: decryptedContent,
+          timestamp: msg.timestamp,
+          hasAttachment: msg.hasAttachment,
+          attachment: msg.attachment
+        };
+      });
+      socket.emit('history', history);
+
+    } catch (err) {
+      console.error('❌ Socket authentication failed for', socket.id, ':', err.message);
+      socket.emit('auth_error', { message: 'Authentication failed: ' + err.message });
+      socket.disconnect(true);
+    }
+  });
+
+  socket.on('message', async (data) => {
+    if (!socket.isAuth || !socket.user) {
+      return socket.emit('error', { message: 'Not authenticated to send messages' });
+    }
+
+    try {
+      const senderId = socket.user._id;
+      const senderMobileNumber = socket.user.mobileNumber;
+      const { receiverId, message, attachment } = data;
+
+      if (!receiverId || (!message && !attachment)) {
+        return socket.emit('error', { message: 'Receiver ID and message content or attachment are required' });
+      }
+
+      const receiverUser = await User.findById(receiverId);
+      if (!receiverUser) {
+        return socket.emit('error', { message: 'Receiver user not found' });
+      }
+      const receiverMobileNumber = receiverUser.mobileNumber;
+
+      let encrypted = '';
+      let keySeed = 0;
+      let encodedText = '';
+      let serializedTree = null;
+
+      // Only encrypt if there's a text message
+      if (message) {
+        const encryptionResult = encryptMessage(message);
+        encrypted = encryptionResult.encrypted;
+        keySeed = encryptionResult.keySeed;
+        const compressionResult = huffmanCompress(encrypted);
+        encodedText = compressionResult.encodedText;
+        serializedTree = serializeTree(compressionResult.tree);
+      }
+
+      const msgDoc = new Message({
+        senderId,
+        senderMobileNumber,
+        receiverId,
+        receiverMobileNumber,
+        original_message: message || '',
+        encrypted_message: encrypted,
+        key_seed: keySeed,
+        compressed_data: encodedText,
+        huffman_tree: serializedTree,
+        hasAttachment: !!attachment,
+        attachment: attachment || null
+      });
+      await msgDoc.save();
+
+      let decryptedContent = '';
+      if (message) {
+        decryptedContent = decryptMessage(huffmanDecompress(encodedText, deserializeTree(serializedTree)), keySeed);
+      }
+
+      const messageData = {
+        id: msgDoc._id,
+        senderId: senderId,
+        senderMobileNumber: senderMobileNumber,
+        receiverId: receiverId,
+        receiverMobileNumber: receiverMobileNumber,
+        message: decryptedContent,
+        timestamp: msgDoc.timestamp,
+        hasAttachment: msgDoc.hasAttachment,
+        attachment: msgDoc.attachment
+      };
+
+      io.to(socket.id).emit('message', messageData);
+
+      io.allSockets().then(async (sockets) => {
+        for (const [id, s] of io.sockets.sockets) {
+          if (s.user && s.user._id.toString() === receiverId.toString() && s.id !== socket.id) {
+            s.emit('message', messageData);
+          }
+        }
+      });
+
+    } catch (err) {
+      console.error('❌ Error handling message for socket', socket.id, ':', err);
+      socket.emit('error', { message: 'Failed to send message' });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('❌ Client disconnected:', socket.id);
+  });
+});
+
+// === START SERVER ===
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Authentication routes: http://localhost:${PORT}/api/auth`);
+  console.log(`Contact routes: http://localhost:${PORT}/api/contacts`);
+  console.log(`File upload route: http://localhost:${PORT}/api/upload`);
+});
