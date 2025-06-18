@@ -137,7 +137,8 @@ export function MessagingInterface() {
         timestamp: new Date(msg.timestamp),
         status: "delivered", // Assume delivered for history
         hasAttachment: msg.hasAttachment,
-        attachment: msg.attachment
+        attachment: msg.attachment,
+        wordProtection: msg.wordProtection || undefined
       }))
       setAllMessages(formattedHistory)
       // Messages for the current chat will be filtered in a separate useEffect
@@ -156,7 +157,8 @@ export function MessagingInterface() {
         timestamp: new Date(newMessage.timestamp),
         status: newMessage.status || "delivered", // Default to delivered
         hasAttachment: newMessage.hasAttachment,
-        attachment: newMessage.attachment
+        attachment: newMessage.attachment,
+        wordProtection: newMessage.wordProtection || undefined
       }
 
       setAllMessages((prevMessages) => [...prevMessages, formattedMessage])
