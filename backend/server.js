@@ -16,25 +16,21 @@ const contactRoutes = require('./routes/contactRoutes');
 const User = require('./models/User');
 const jwt = require('jsonwebtoken');
 
-// === CONFIGURATION ===
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://messaging_user:3DBZNGn62h9xGQVR@cluster0.z0ofrfz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const PORT = 5000;
 
-// === WORD PROTECTION SYSTEM INITIALIZATION ===
 const wordProtection = new WordProtectionSystem();
 
-// Load word data into the protection system
 wordProtection.loadBannedWords(bannedWords, '***');
 wordProtection.loadSpamPatterns(spamPatterns);
 wordProtection.loadDictionary(dictionaryWords);
 
-console.log('🛡️ Word Protection System initialized:');
+console.log(' Word Protection System initialized:');
 console.log(`   - Banned words: ${wordProtection.getStats().bannedWords}`);
 console.log(`   - Spam patterns: ${wordProtection.getStats().spamPatterns}`);
 console.log(`   - Dictionary words: ${wordProtection.getStats().dictionaryWords}`);
 
-// === MULTER CONFIGURATION FOR FILE UPLOADS ===
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = path.join(__dirname, 'uploads');
@@ -69,26 +65,23 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 10 * 1024 * 1024
   }
 });
 
-// === EXPRESS/HTTP/SOCKET.IO SETUP ===
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*', // Allow all origins for dev; restrict in prod
+    origin: '*', 
     methods: ['GET', 'POST']
   }
 });
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// === FILE UPLOAD ROUTES ===
 app.post('/api/upload', upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
@@ -113,11 +106,9 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   }
 });
 
-// === ROUTES ===
 app.use('/api/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
 
-// === WORD PROTECTION API ENDPOINTS ===
 app.get('/api/word-protection/stats', (req, res) => {
   try {
     const stats = wordProtection.getStats();
@@ -246,9 +237,8 @@ app.post('/api/word-protection/add-user-word', (req, res) => {
   }
 });
 
-// === MONGODB SETUP ===
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('✅ MongoDB connected'))
+  .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
 const messageSchema = new mongoose.Schema({
@@ -263,7 +253,6 @@ const messageSchema = new mongoose.Schema({
   huffman_tree: Object,
   timestamp: { type: Date, default: Date.now },
   is_read: { type: Boolean, default: false },
-  // New fields for file attachments
   hasAttachment: { type: Boolean, default: false },
   attachment: {
     filename: String,
@@ -275,7 +264,6 @@ const messageSchema = new mongoose.Schema({
 });
 const Message = mongoose.model('Message', messageSchema);
 
-// === SOCKET.IO AUTHENTICATION & EVENTS ===
 io.on('connection', async (socket) => {
   console.log(`🔗 Client connected: ${socket.id}`);
   socket.isAuth = false;
@@ -290,7 +278,7 @@ io.on('connection', async (socket) => {
 
       socket.user = user;
       socket.isAuth = true;
-      console.log(`✅ Socket ${socket.id} authenticated for user: ${user.mobileNumber}`);
+      console.log(` Socket ${socket.id} authenticated for user: ${user.mobileNumber}`);
       socket.emit('authenticated', { userId: user._id, mobileNumber: user.mobileNumber });
 
       const contactIds = user.contacts.map(contact => contact._id);
@@ -337,7 +325,7 @@ io.on('connection', async (socket) => {
       socket.emit('history', history);
 
     } catch (err) {
-      console.error('❌ Socket authentication failed for', socket.id, ':', err.message);
+      console.error(' Socket authentication failed for', socket.id, ':', err.message);
       socket.emit('auth_error', { message: 'Authentication failed: ' + err.message });
       socket.disconnect(true);
     }
@@ -375,7 +363,7 @@ io.on('connection', async (socket) => {
         
         // Log protection analysis for monitoring
         if (!wordProtectionAnalysis.isClean) {
-          console.log(`🛡️ Word protection triggered for user ${senderMobileNumber}:`);
+          console.log(` Word protection triggered for user ${senderMobileNumber}:`);
           if (wordProtectionAnalysis.bannedWords.length > 0) {
             console.log(`   - Banned words found: ${wordProtectionAnalysis.bannedWords.map(w => w.word).join(', ')}`);
           }
@@ -460,19 +448,19 @@ io.on('connection', async (socket) => {
       });
 
     } catch (err) {
-      console.error('❌ Error handling message for socket', socket.id, ':', err);
+      console.error(' Error handling message for socket', socket.id, ':', err);
       socket.emit('error', { message: 'Failed to send message' });
     }
   });
 
   socket.on('disconnect', () => {
-    console.log('❌ Client disconnected:', socket.id);
+    console.log(' Client disconnected:', socket.id);
   });
 });
 
 // === START SERVER ===
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(` Server running on http://localhost:${PORT}`);
   console.log(`Authentication routes: http://localhost:${PORT}/api/auth`);
   console.log(`Contact routes: http://localhost:${PORT}/api/contacts`);
   console.log(`File upload route: http://localhost:${PORT}/api/upload`);
