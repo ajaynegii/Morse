@@ -16,6 +16,14 @@ export interface Attachment {
   path: string
 }
 
+export interface WordProtectionMetadata {
+  isClean: boolean
+  bannedWordsCount: number
+  spamPatternsCount: number
+  spellCheckIssues: number
+  wasFiltered: boolean
+}
+
 export interface Message {
   id: string
   senderId: string
@@ -27,6 +35,7 @@ export interface Message {
   status: "sent" | "delivered" | "read"
   hasAttachment?: boolean
   attachment?: Attachment
+  wordProtection?: WordProtectionMetadata
 }
 
 export interface SearchUser {
