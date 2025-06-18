@@ -1,8 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import type { Message } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { Check, CheckCheck, File, Image, Download, FileText } from "lucide-react"
+import { Check, CheckCheck, File, Image, Download, FileText, Shield, AlertTriangle } from "lucide-react"
 
 interface MessageBubbleProps {
   message: Message
@@ -65,6 +66,36 @@ export function MessageBubble({ message, isMe, contactName, contactAvatar }: Mes
             : "bg-muted rounded-tl-none dark:bg-gray-800",
         )}
       >
+        {/* Word Protection Status */}
+        {message.wordProtection && (
+          <div className="mb-2 flex items-center gap-1 flex-wrap">
+            {message.wordProtection.wasFiltered && (
+              <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                <Shield className="h-3 w-3 mr-1" />
+                Content filtered
+              </Badge>
+            )}
+            
+            {message.wordProtection.bannedWordsCount > 0 && (
+              <Badge variant="outline" className="text-xs text-red-600">
+                {message.wordProtection.bannedWordsCount} banned word(s)
+              </Badge>
+            )}
+            
+            {message.wordProtection.spamPatternsCount > 0 && (
+              <Badge variant="outline" className="text-xs text-orange-600">
+                {message.wordProtection.spamPatternsCount} spam pattern(s)
+              </Badge>
+            )}
+            
+            {message.wordProtection.spellCheckIssues > 0 && (
+              <Badge variant="outline" className="text-xs text-blue-600">
+                {message.wordProtection.spellCheckIssues} spelling issue(s)
+              </Badge>
+            )}
+          </div>
+        )}
+
         {/* File Attachment */}
         {message.hasAttachment && message.attachment && (
           <div className="mb-3 p-3 bg-background/20 rounded-lg border border-border/50">
