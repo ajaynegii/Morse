@@ -35,7 +35,6 @@ export interface Message {
   status: "sent" | "delivered" | "read"
   hasAttachment?: boolean
   attachment?: Attachment
-  wordProtection?: WordProtectionMetadata
 }
 
 export interface SearchUser {

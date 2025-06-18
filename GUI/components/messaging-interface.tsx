@@ -36,6 +36,7 @@ export function MessagingInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isMobile = useMobile()
   const { theme, setTheme } = useTheme()
+  const [developerMode, setDeveloperMode] = useState(false)
 
   const fetchContacts = useCallback(async () => {
     if (!token) return
@@ -134,6 +135,7 @@ export function MessagingInterface() {
         receiverId: msg.receiverId,
         receiverMobileNumber: msg.receiverMobileNumber,
         content: msg.message, // Backend now sends decrypted message as 'message'
+        encrypted_message: msg.encrypted_message, // Ensure encrypted form is mapped
         timestamp: new Date(msg.timestamp),
         status: "delivered", // Assume delivered for history
         hasAttachment: msg.hasAttachment,
@@ -153,7 +155,8 @@ export function MessagingInterface() {
         senderMobileNumber: newMessage.senderMobileNumber,
         receiverId: newMessage.receiverId,
         receiverMobileNumber: newMessage.receiverMobileNumber,
-        content: newMessage.message,
+        content: newMessage.message, // Decrypted message
+        encrypted_message: newMessage.encrypted_message, // Encrypted form
         timestamp: new Date(newMessage.timestamp),
         status: newMessage.status || "delivered", // Default to delivered
         hasAttachment: newMessage.hasAttachment,
@@ -303,6 +306,17 @@ export function MessagingInterface() {
     }
   }, [token, newContactMobileNumber, fetchContacts, toast]);
 
+  // Secret key sequence: Ctrl+Shift+D
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+        setDeveloperMode((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   return (
     <div className="flex h-screen w-full">
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
@@ -365,7 +379,7 @@ export function MessagingInterface() {
       </div>
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b p-4 shadow-sm">
+        <header className="header-agent47 flex items-center justify-between border-b p-4 shadow-sm">
           <div className="flex items-center gap-3">
             {selectedContact ? (
               <div className="flex items-center gap-3">
@@ -394,6 +408,7 @@ export function MessagingInterface() {
                   isMe={msg.senderId === userId}
                   contactName={selectedContact.name}
                   contactAvatar={selectedContact.avatar || ""}
+                  developerMode={developerMode}
                 />
               ))
             ) : (

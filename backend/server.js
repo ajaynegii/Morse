@@ -315,7 +315,12 @@ io.on('connection', async (socket) => {
             decryptedContent = '⚠️ [Decryption Error]';
           }
         }
-
+        console.log('DEBUG HISTORY:', {
+          id: msg._id,
+          key_seed: msg.key_seed,
+          encrypted_message: msg.encrypted_message,
+          decryptedContent
+        });
         return {
           id: msg._id,
           senderId: msg.senderId,
@@ -323,6 +328,7 @@ io.on('connection', async (socket) => {
           receiverId: msg.receiverId,
           receiverMobileNumber: msg.receiverMobileNumber,
           message: decryptedContent,
+          encrypted_message: msg.encrypted_message,
           timestamp: msg.timestamp,
           hasAttachment: msg.hasAttachment,
           attachment: msg.attachment
@@ -416,6 +422,11 @@ io.on('connection', async (socket) => {
       if (filteredMessage) {
         decryptedContent = decryptMessage(huffmanDecompress(encodedText, deserializeTree(serializedTree)), keySeed);
       }
+      console.log('DEBUG NEW MESSAGE:', {
+        keySeed,
+        encrypted,
+        decryptedContent
+      });
 
       const messageData = {
         id: msgDoc._id,
@@ -424,6 +435,7 @@ io.on('connection', async (socket) => {
         receiverId: receiverId,
         receiverMobileNumber: receiverMobileNumber,
         message: decryptedContent,
+        encrypted_message: encrypted,
         timestamp: msgDoc.timestamp,
         hasAttachment: msgDoc.hasAttachment,
         attachment: msgDoc.attachment,

@@ -13,6 +13,7 @@ import {
   DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 interface ContactListProps {
   contacts: Contact[]
@@ -203,7 +204,10 @@ export function ContactList({
         {displayContacts.map((contact) => (
           <div
             key={contact.id}
-            className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-muted ${selectedContact?.id === contact.id ? "bg-muted" : ""}`}
+            className={cn(
+              "contact-agent47 flex items-center gap-3 px-4 py-3 cursor-pointer transition-all",
+              selectedContact?.id === contact.id ? "selected" : "",
+            )}
             onClick={() => {
               onSelectContact(contact)
               onCloseSidebar?.()

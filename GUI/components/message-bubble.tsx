@@ -10,9 +10,10 @@ interface MessageBubbleProps {
   isMe: boolean
   contactName: string
   contactAvatar: string
+  developerMode?: boolean
 }
 
-export function MessageBubble({ message, isMe, contactName, contactAvatar }: MessageBubbleProps) {
+export function MessageBubble({ message, isMe, contactName, contactAvatar, developerMode }: MessageBubbleProps) {
   const formattedTime = new Date(message.timestamp).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
@@ -60,10 +61,8 @@ export function MessageBubble({ message, isMe, contactName, contactAvatar }: Mes
 
       <div
         className={cn(
-          "rounded-lg p-3 min-w-[120px] shadow-sm transition-all",
-          isMe
-            ? "bg-primary text-primary-foreground rounded-tr-none dark:bg-primary/90"
-            : "bg-muted rounded-tl-none dark:bg-gray-800",
+          "bubble-agent47 p-3 min-w-[120px] shadow-sm transition-all",
+          isMe ? "me" : ""
         )}
       >
         {/* Word Protection Status */}
@@ -131,6 +130,12 @@ export function MessageBubble({ message, isMe, contactName, contactAvatar }: Mes
         {/* Message Content */}
         {message.content && (
           <p className="whitespace-pre-wrap break-words">{message.content}</p>
+        )}
+        {developerMode && message.encrypted_message && (
+          <div className="mt-2 p-2 rounded bg-black/60 text-xs font-mono text-red-400 border border-dashed border-red-700/30" style={{fontFamily: 'Oswald, Roboto Mono, Consolas, Menlo, monospace'}}>
+            <span className="block font-semibold mb-1">Encrypted:</span>
+            <span className="break-all">{message.encrypted_message}</span>
+          </div>
         )}
 
         <div className={cn("flex items-center gap-1 text-xs mt-1", isMe ? "justify-end" : "")}>

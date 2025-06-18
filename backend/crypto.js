@@ -47,7 +47,19 @@ function xorEncrypt(text, keySeed) {
   for (let i = 0; i < textBuffer.length; i++) {
     resultBuffer[i] = textBuffer[i] ^ (Math.floor(PI * E * PHI * keySeed * (i + 1)) % 256);
   }
-  return resultBuffer.toString('binary');
+  return resultBuffer.toString('base64');
+}
+
+// New helper function to generate subKey from a given seed
+function getSubKeyFromSeed(seed) {
+  const chars = [];
+  for (let i = 32; i < 127; i++) chars.push(String.fromCharCode(i));
+  const shuffled = shuffle([...chars], seed);
+  const subKey = {};
+  for (let i = 0; i < chars.length; i++) {
+    subKey[chars[i]] = shuffled[i];
+  }
+  return subKey;
 }
 
 function encryptMessage(text) {
@@ -59,8 +71,8 @@ function encryptMessage(text) {
   return { encrypted: xorEncrypt(substituted, keySeed), keySeed };
 }
 
-function xorDecrypt(binaryString, keySeed) {
-  const textBuffer = Buffer.from(binaryString, 'binary');
+function xorDecrypt(base64String, keySeed) {
+  const textBuffer = Buffer.from(base64String, 'base64');
   let resultBuffer = Buffer.alloc(textBuffer.length);
   for (let i = 0; i < textBuffer.length; i++) {
     resultBuffer[i] = textBuffer[i] ^ (Math.floor(PI * E * PHI * keySeed * (i + 1)) % 256);
@@ -69,7 +81,7 @@ function xorDecrypt(binaryString, keySeed) {
 }
 
 function decryptMessage(encrypted, keySeed) {
-  const { subKey } = generateKey();
+  const subKey = getSubKeyFromSeed(keySeed); // Use the provided keySeed to get the subKey
   const reverseKey = {};
   for (const k in subKey) {
     reverseKey[subKey[k]] = k;

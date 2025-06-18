@@ -3,7 +3,85 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #18191a 0%, #232526 100%);
+  color: #e6e6e6;
+  font-family: 'Montserrat', 'Roboto', 'Oswald', Arial, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #18191a;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+/* Chat bubbles */
+.bubble-agent47 {
+  background: #18191a;
+  border: 2px solid #b30000;
+  color: #fff;
+  border-radius: 12px 12px 4px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.bubble-agent47.me {
+  background: #232526;
+  border-color: #e60000;
+  color: #fff;
+}
+.bubble-agent47:hover {
+  background: #222325;
+  border-color: #ff3333;
+}
+
+/* Buttons */
+.button-agent47 {
+  background: #b30000;
+  color: #fff;
+  border: 2px solid #e60000;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background 0.2s, border 0.2s;
+}
+.button-agent47:hover {
+  background: #e60000;
+  border-color: #fff;
+  color: #fff;
+}
+
+/* Header */
+.header-agent47 {
+  background: #18191a;
+  border-bottom: 3px solid #b30000;
+  color: #fff;
+  font-family: 'Montserrat', 'Roboto', 'Oswald', Arial, sans-serif;
+  letter-spacing: 1px;
+}
+
+/* Contact list */
+.contact-agent47 {
+  background: #18191a;
+  border-bottom: 1px solid #333;
+  color: #e6e6e6;
+}
+.contact-agent47.selected {
+  background: #b30000;
+  color: #fff;
+}
+
+/* Optional: Barcode watermark */
+.body-barcode::after {
+  content: '';
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 120px;
+  height: 40px;
+  background: url('/barcode.png') no-repeat center/contain;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 9999;
 }
 
 @layer utilities {
